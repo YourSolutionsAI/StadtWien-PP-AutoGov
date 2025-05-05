@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatisierte Governance-Prüfung</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #2e5cb8;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .tab.active {
+            background-color: #2e5cb8;
+            color: white;
+            border-color: #2e5cb8;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #ddd;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .workflow-container {
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        
+        .workflow-step {
+            text-align: center;
+            margin: 0 15px;
+            width: 180px;
+            position: relative;
+        }
+        
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            background-color: #2e5cb8;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .step-arrow {
+            position: absolute;
+            top: 30px;
+            right: -30px;
+            color: #2e5cb8;
+            font-size: 24px;
+        }
+        
+        .form-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        
+        button {
+            background-color: #2e5cb8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #224491;
+        }
+        
+        .result-container {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .result-approved {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result-rejected {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result-flagged {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+        
+        .governance-rules {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .code-block {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+        }
+        
+        .system-diagram {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .comparison-table th {
+            background-color: #f1f1f1;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .similar-cases {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .case-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #2e5cb8;
+            background-color: #f1f5ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Automatisierte Governance-Prüfung für Power Platform</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="openTab(event, 'overview')">Überblick</div>
+            <div class="tab" onclick="openTab(event, 'simulation')">Simulation</div>
+            <div class="tab" onclick="openTab(event, 'architecture')">Architektur</div>
+            <div class="tab" onclick="openTab(event, 'comparison')">Vergleich</div>
+        </div>
+        
+        <div id="overview" class="tab-content active">
+            <h2>Prozessüberblick</h2>
+            <div class="workflow-container">
+                <div class="workflow-step">
+                    <div class="step-icon">1</div>
+                    <p>Anforderungserfassung in HubApp</p>
+                    <div class="step-arrow">→</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-icon">2</div>
+                    <p>Automatische Governance-Prüfung</p>
+                    <div class="step-arrow">→</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-icon">3</div>
+                    <p>Status-Update und Protokollierung</p>
+                    <div class="step-arrow">→</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-icon">4</div>
+                    <p>Manuelle Freigabe (falls erforderlich)</p>
+                </div>
+            </div>
+            
+            <h2>Zielsetzung</h2>
+            <p>Nach der Erfassung einer Anforderung (z.B. Use Case, Konnektorfreigabe, DLP-Ausnahme, Ownerwechsel) in der HubApp soll automatisch geprüft werden, ob diese konform zur Governance ist. Die tatsächliche Freigabe erfolgt manuell, aber der Status „automatisch geprüft" wird bei positiver Prüfung gesetzt.</p>
+            
+            <h2>Komponenten</h2>
+            <p><strong>1. Regelbasierte Prüfung:</strong> Prüft strukturierte Daten gegen definierte Regeln (JSON-Format)</p>
+            <p><strong>2. LLM-gestützte Prüfung:</strong> Evaluiert Freitextfelder semantisch und vergleicht mit ähnlichen Fällen</p>
+            
+            <h2>Governance-Regeln (Beispiel)</h2>
+            <div class="governance-rules">
+                <ul>
+                    <li>Erlaubte Use-Case-Kategorien: "interne Automatisierung", "Serviceportal"</li>
+                    <li>Erlaubte Konnektoren: SharePoint, Teams, Outlook</li>
+                    <li>Verbotene Konnektoren: SQL, HTTP, Custom</li>
+                    <li>Maximale Datensensitivität: INTERN</li>
+                    <li>Erlaubte Eigentümerwechselziele: MA01, MA40</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="simulation" class="tab-content">
+            <h2>Simulieren Sie eine Governance-Prüfung</h2>
+            
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="title">Titel der Anforderung:</label>
+                    <input type="text" id="title" placeholder="z.B. Flow zur Automatisierung von Aktenlauf">
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">Use-Case-Kategorie:</label>
+                    <select id="category">
+                        <option value="">-- Bitte wählen --</option>
+                        <option value="interne Automatisierung">Interne Automatisierung</option>
+                        <option value="Serviceportal">Serviceportal</option>
+                        <option value="Externes System">Externes System</option>
+                        <option value="Datenanalyse">Datenanalyse</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Verwendete Konnektoren:</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <input type="checkbox" id="conn-sharepoint" value="SharePoint">
+                            <label for="conn-sharepoint">SharePoint</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="conn-teams" value="Teams">
+                            <label for="conn-teams">Teams</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="conn-outlook" value="Outlook">
+                            <label for="conn-outlook">Outlook</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="conn-sql" value="SQL">
+                            <label for="conn-sql">SQL</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="conn-http" value="HTTP">
+                            <label for="conn-http">HTTP</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="conn-custom" value="Custom">
+                            <label for="conn-custom">Custom</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sensitivity">Datensensitivität:</label>
+                    <select id="sensitivity">
+                        <option value="">-- Bitte wählen --</option>
+                        <option value="ÖFFENTLICH">ÖFFENTLICH</option>
+                        <option value="INTERN">INTERN</option>
+                        <option value="VERTRAULICH">VERTRAULICH</option>
+                        <option value="STRENG VERTRAULICH">STRENG VERTRAULICH</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Beschreibung der Anforderung:</label>
+                    <textarea id="description" rows="4" placeholder="Bitte beschreiben Sie Ihren Use Case..."></textarea>
+                </div>
+                
+                <button onclick="evaluateRequest('rule')">Regelbasierte Prüfung starten</button>
+                <button onclick="evaluateRequest('llm')">LLM-gestützte Prüfung starten</button>
+            </div>
+            
+            <div id="rule-result" class="result-container">
+                <h3>Ergebnis der regelbasierten Prüfung</h3>
+                <p id="rule-decision"></p>
+                <p id="rule-reason"></p>
+                <div id="rule-json" class="code-block"></div>
+            </div>
+            
+            <div id="llm-result" class="result-container">
+                <h3>Ergebnis der LLM-gestützten Prüfung</h3>
+                <p id="llm-decision"></p>
+                <p id="llm-reason"></p>
+                
+                <div id="similar-cases" class="similar-cases">
+                    <h4>Ähnliche Fälle:</h4>
+                    <div id="case-list"></div>
+                </div>
+                
+                <div id="llm-json" class="code-block"></div>
+            </div>
+        </div>
+        
+        <div id="architecture" class="tab-content">
+            <h2>Systemarchitektur</h2>
+            
+            <svg class="system-diagram" height="400" viewBox="0 0 800 400">
+                <!-- HubApp -->
+                <rect x="100" y="50" width="180" height="60" rx="5" fill="#2e5cb8" />
+                <text x="190" y="85" fill="white" text-anchor="middle" font-weight="bold">HubApp (Power Apps)</text>
+                
+                <!-- Arrow down -->
+                <path d="M190,110 L190,150" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                
+                <!-- Dataverse -->
+                <rect x="100" y="150" width="180" height="60" rx="5" fill="#4472c4" />
+                <text x="190" y="185" fill="white" text-anchor="middle" font-weight="bold">Dataverse Request Table</text>
+                
+                <!-- Arrow down -->
+                <path d="M190,210 L190,250" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                
+                <!-- Evaluation Trigger -->
+                <rect x="50" y="250" width="280" height="60" rx="5" fill="#7030a0" />
+                <text x="190" y="285" fill="white" text-anchor="middle" font-weight="bold">Automated Evaluation Trigger</text>
+                
+                <!-- Arrow to Rule Engine -->
+                <path d="M190,310 L100,350" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                
+                <!-- Arrow to LLM -->
+                <path d="M190,310 L280,350" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                
+                <!-- Rule Engine -->
+                <rect x="10" y="350" width="180" height="60" rx="5" fill="#70ad47" />
+                <text x="100" y="385" fill="white" text-anchor="middle" font-weight="bold">Regelbasierte Engine</text>
+                
+                <!-- LLM -->
+                <rect x="200" y="350" width="180" height="60" rx="5" fill="#ed7d31" />
+                <text x="290" y="385" fill="white" text-anchor="middle" font-weight="bold">LLM-gestützte Prüfung</text>
+                
+                <!-- Governance Rules -->
+                <rect x="450" y="50" width="250" height="120" rx="5" fill="#f5f5f5" stroke="#333" />
+                <text x="575" y="85" fill="#333" text-anchor="middle" font-weight="bold">Governance-Regeln (JSON)</text>
+                <foreignObject x="470" y="95" width="210" height="65">
+                    <div class="code-block" style="margin: 0; font-size: 10px; overflow: hidden; text-overflow: ellipsis;">
+                    {
+                      "usecaseCategories": [...],
+                      "allowedConnectors": [...],
+                      "forbiddenConnectors": [...]
+                    }
+                    </div>
+                </foreignObject>
+                
+                <!-- CoE Data -->
+                <rect x="450" y="190" width="250" height="120" rx="5" fill="#f5f5f5" stroke="#333" />
+                <text x="575" y="225" fill="#333" text-anchor="middle" font-weight="bold">CoE Starter Kit Daten</text>
+                <foreignObject x="470" y="235" width="210" height="65">
+                    <div style="font-size: 12px;">
+                        • Existierende Flows und Apps<br>
+                        • Frühere Entscheidungen<br>
+                        • Ähnliche Anwendungsfälle
+                    </div>
+                </foreignObject>
+                
+                <!-- Status Update -->
+                <rect x="450" y="330" width="250" height="80" rx="5" fill="#5b9bd5" />
+                <text x="575" y="365" fill="white" text-anchor="middle" font-weight="bold">Write back to DB</text>
+                <text x="575" y="385" fill="white" text-anchor="middle">Status update & Audit-Protokoll</text>
+                
+                <!-- Arrows from Rule Engine to Status Update -->
+                <path d="M190,380 L450,370" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                
+                <!-- Arrows from LLM to Status Update -->
+                <path d="M380,380 L450,370" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                
+                <!-- Arrow from Governance Rules to Rule Engine -->
+                <path d="M450,110 L100,350" stroke="#333" stroke-width="2" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowhead)" />
+                
+                <!-- Arrow from CoE Data to LLM -->
+                <path d="M450,250 L290,350" stroke="#333" stroke-width="2" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowhead)" />
+                
+                <!-- Define arrowhead marker -->
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                    refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+                    </marker>
+                </defs>
+            </svg>
+            
+            <h2>Technologie-Details</h2>
+            
+            <h3>1. Regelbasierte Prüfung</h3>
+            <ul>
+                <li><strong>Technologieoptionen:</strong> Power Automate Flow oder Azure Function (C#/Python)</li>
+                <li><strong>Governance-Regeln:</strong> Konfigurierbar als JSON oder Tabelle (SharePoint, Dataverse)</li>
+                <li><strong>Prüflogik:</strong> Strukturierte Evaluierung nach vordefinierten Regeln</li>
+            </ul>
+            
+            <h3>2. LLM-gestützte Prüfung</h3>
+            <ul>
+                <li><strong>Technologien:</strong> Azure OpenAI oder OpenAI API (GPT-4) per Azure Function</li>
+                <li><strong>CoE-Daten:</strong> Vektor-Index (Azure Cognitive Search oder Pinecone)</li>
+                <li><strong>Prompting:</strong> Kontextualisiert mit Governance-Richtlinien und ähnlichen Fällen</li>
+            </ul>
+            
+            <h3>Datenbank-Update / Statusverwaltung</h3>
+            <ul>
+                <li><strong>Tabelle:</strong> Anforderungen mit Feldern für Status, Begründung, RisikoScore, etc.</li>
+                <li><strong>Audit:</strong> Vollständige Protokollierung für Nachvollziehbarkeit</li>
+                <li><strong>Ausblick:</strong> Vollautomatisierte Freigabe bei niedriger Risikoklasse möglich</li>
+            </ul>
+        </div>
+        
+        <div id="comparison" class="tab-content">
+            <h2>Vergleich der Prüfungsverfahren</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Dimension</th>
+                        <th>Regelbasierte Prüfung</th>
+                        <th>LLM-gestützte Prüfung</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Implementierungsaufwand</strong></td>
+                        <td>Niedrig – sofort umsetzbar</td>
+                        <td>Mittel – Setup + Prompting nötig</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Wartbarkeit</strong></td>
+                        <td>Hoch, über JSON o. Ä.</td>
+                        <td>Mittel – Prompt-Tuning nötig</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Flexibilität</strong></td>
+                        <td>Niedrig – bei Änderung Regel neu schreiben</td>
+                        <td>Hoch – reagiert auf neue Formulierungen & Freitext</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Audit-Konformität</strong></td>
+                        <td>Hoch (strukturiert)</td>
+                        <td>Hoch (sofern Logging + Referenzen gespeichert werden)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Anwendungsbereich</strong></td>
+                        <td>Strukturierte Daten, klare Regeln</td>
+                        <td>Freitextfelder, semantische Vergleiche</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Erklärbarkeit</strong></td>
+                        <td>Sehr hoch, durch exakte Regelreferenz</td>
+                        <td>Hoch, durch natürlichsprachliche Erklärung</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2>Kombinierter Ansatz (empfohlen)</h2>
+            <p>Für optimale Ergebnisse empfiehlt sich eine Kombination beider Ansätze:</p>
+            <ul>
+                <li><strong>Stufe 1:</strong> Regelbasierte Schnellprüfung für grundlegende Konformität</li>
+                <li><strong>Stufe 2:</strong> LLM-gestützte Prüfung für komplexere semantische Auswertung</li>
+                <li><strong>Ergebnis:</strong> Höhere Genauigkeit und bessere Abdeckung bei gleichzeitiger Nachvollziehbarkeit</li>
+            </ul>
+            
+            <h2>Ausblick: Vollautomatisierte Freigabe</h2>
+            <p>Aufbauend auf dieser Architektur kann im nächsten Schritt eine automatisierte Freigabe bei Risikoklasse = "niedrig" erfolgen – z. B. bei bekannten Mustern wie SharePoint + Teams Automatisierung.</p>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabContent, tabLinks;
+            
+            // Hide all tab content
+            tabContent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].classList.remove("active");
+            }
+            
+            // Remove "active" class from all tabs
+            tabLinks = document.getElementsByClassName("tab");
+            for (i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].classList.remove("active");
+            }
+            
+            // Show the current tab and add "active" class to the button
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        function evaluateRequest(type) {
+            // Get form values
+            const title = document.getElementById("title").value;
+            const category = document.getElementById("category").value;
+            const sensitivity = document.getElementById("sensitivity").value;
+            const description = document.getElementById("description").value;
+            
+            // Get selected connectors
+            const connectors = [];
+            document.querySelectorAll('input[type=checkbox]:checked').forEach(checkbox => {
+                connectors.push(checkbox.value);
+            });
+            
+            // Validate inputs
+            if (!title || !category || connectors.length === 0 || !sensitivity || !description) {
+                alert("Bitte füllen Sie alle Felder aus.");
+                return;
+            }
+            
+            // Rules for evaluation
+            const rules = {
+                usecaseCategories: ["interne Automatisierung", "Serviceportal"],
+                allowedConnectors: ["SharePoint", "Teams", "Outlook"],
+                forbiddenConnectors: ["SQL", "HTTP", "Custom"],
+                maxDataSensitivity: "INTERN"
+            };
+            
+            // Hide all result containers first
+            document.getElementById("rule-result").style.display = "none";
+            document.getElementById("llm-result").style.display = "none";
+            
+            if (type === 'rule') {
+                // Rule-based evaluation
+                let decision = "APPROVED";
+                let reason = "";
+                
+                // Check use case category
+                if (!rules.usecaseCategories.includes(category)) {
+                    decision = "FLAGGED";
+                    reason += "Use-Case-Kategorie ist nicht in der erlaubten Liste. ";
+                }
+                
+                // Check connectors
+                for (const connector of connectors) {
+                    if (rules.forbiddenConnectors.includes(connector)) {
+                        decision = "REJECTED";
+                        reason += connector + " Konnektor ist laut Richtlinie nicht erlaubt. ";
+                    }
+                }
+                
+                // Check data sensitivity
+                const sensitivityLevels = {
+                    "ÖFFENTLICH": 1,
+                    "INTERN": 2,
+                    "VERTRAULICH": 3,
+                    "STRENG VERTRAULICH": 4
+                };
+                
+                if (sensitivityLevels[sensitivity] > sensitivityLevels[rules.maxDataSensitivity]) {
+                    decision = "REJECTED";
+                    reason += "Datensensitivität '" + sensitivity + "' überschreitet die maximale erlaubte Stufe '" + rules.maxDataSensitivity + "'. ";
+                }
+                
+                if (reason === "") {
+                    reason = "Alle Regeln wurden erfolgreich überprüft.";
+                }
+                
+                // Display result
+                const ruleResult = document.getElementById("rule-result");
+                ruleResult.style.display = "block";
+                ruleResult.className = "result-container";
+                
+                if (decision === "APPROVED") {
+                    ruleResult.classList.add("result-approved");
+                } else if (decision === "REJECTED") {
+                    ruleResult.classList.add("result-rejected");
+                } else {
+                    ruleResult.classList.add("result-flagged");
+                }
+                
+                document.getElementById("rule-decision").textContent = "Entscheidung: " + decision;
+                document.getElementById("rule-reason").textContent = "Begründung: " + reason;
+                
+                const resultJson = {
+                    "result": decision,
+                    "reason": reason,
+                    "evaluatedRules": {
+                        "category": rules.usecaseCategories.includes(category),
+                        "connectors": connectors.filter(c => !rules.forbiddenConnectors.includes(c)),
+                        "dataSensitivity": sensitivityLevels[sensitivity] <= sensitivityLevels[rules.maxDataSensitivity]
+                    }
+                };
+                
+                document.getElementById("rule-json").textContent = JSON.stringify(resultJson, null, 2);
+            } else if (type === 'llm') {
+                // LLM-based evaluation
+                let decision, reason, matchedCases;
+                
+                // Simulate LLM evaluation based on inputs
+                if (connectors.includes("HTTP") && sensitivity !== "ÖFFENTLICH") {
+                    decision = "nicht möglich";
+                    reason = "Die Verwendung des HTTP-Konnektors ist laut Governance-Richtlinien nur für öffentliche Daten zulässig.";
+                    matchedCases = [
+                        "Case-1234: Flow für Aktenmanagement – abgelehnt wegen HTTP mit internen Daten",
+                        "Case-5678: Automatisierung mit HTTP für öffentliche Website – genehmigt" 
+                    ];
+                } else if (connectors.includes("Custom")) {
+                    decision = "unklar";
+                    reason = "Custom Connector erfordert eine individuelle Prüfung durch die IT-Abteilung. Die Beschreibung deutet auf einen internen Anwendungsfall hin, was generell konform ist, jedoch ist die spezifische Implementierung zu prüfen.";
+                    matchedCases = [
+                        "Case-2468: Interner Custom Connector für Dokumentenverarbeitung – nach IT-Review genehmigt",
+                        "Case-7531: Custom Connector für externe APIs – abgelehnt wegen fehlender Sicherheitsanalyse"
+                    ];
+                } else if (connectors.includes("SQL")) {
+                    decision = "nicht möglich";
+                    reason = "SQL-Konnektor ist gemäß aktueller DLP-Richtlinie nicht für diese Use-Case-Kategorie zugelassen.";
+                    matchedCases = [
+                        "Case-3698: Datenabfrage mit SQL – abgelehnt wegen Sicherheitsbedenken",
+                        "Case-9517: Reporting-Flow mit SQL – auf Dataverse umgestellt und dann genehmigt"
+                    ];
+                } else if (description.toLowerCase().includes("extern") && !category.includes("Serviceportal")) {
+                    decision = "unklar";
+                    reason = "Die Beschreibung deutet auf externe Datenverarbeitung hin, was für die Kategorie " + category + " möglicherweise eine zusätzliche Prüfung erfordert.";
+                    matchedCases = [
+                        "Case-8246: Externe Datenverarbeitung für HR – mit zusätzlicher Datenschutzprüfung genehmigt"
+                    ];
+                } else {
+                    decision = "möglich";
+                    reason = "Die Kombination aus Kategorie, Konnektoren und Datensensitivität entspricht den Governance-Richtlinien. Die Beschreibung zeigt einen typischen internen Anwendungsfall.";
+                    matchedCases = [
+                        "Case-4567: SharePoint Automatisierung – genehmigt",
+                        "Case-7890: Teams-Integration für interne Prozesse – genehmigt"
+                    ];
+                }
+                
+                // Display result
+                const llmResult = document.getElementById("llm-result");
+                llmResult.style.display = "block";
+                llmResult.className = "result-container";
+                
+                if (decision === "möglich") {
+                    llmResult.classList.add("result-approved");
+                } else if (decision === "nicht möglich") {
+                    llmResult.classList.add("result-rejected");
+                } else {
+                    llmResult.classList.add("result-flagged");
+                }
+                
+                document.getElementById("llm-decision").textContent = "Entscheidung: Freigabe " + decision;
+                document.getElementById("llm-reason").textContent = "Begründung: " + reason;
+                
+                // Display similar cases
+                const similarCases = document.getElementById("similar-cases");
+                similarCases.style.display = "block";
+                
+                const caseList = document.getElementById("case-list");
+                caseList.innerHTML = "";
+                
+                for (const caseItem of matchedCases) {
+                    const caseDiv = document.createElement("div");
+                    caseDiv.className = "case-item";
+                    caseDiv.textContent = caseItem;
+                    caseList.appendChild(caseDiv);
+                }
+                
+                const resultJson = {
+                    "decision": decision,
+                    "reason": reason,
+                    "matchedCases": matchedCases,
+                    "confidenceScore": (decision === "möglich" || decision === "nicht möglich") ? 0.85 : 0.65
+                };
+                
+                document.getElementById("llm-json").textContent = JSON.stringify(resultJson, null, 2);
+            }
+        }
+    </script>
+</body>
+</html>
