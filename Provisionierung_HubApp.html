@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Platform Governance Automation</title>
+    <style>
+        :root {
+            --primary: #0078d4;
+            --secondary: #106ebe;
+            --success: #107c10;
+            --warning: #ffb900;
+            --danger: #d13438;
+            --light: #f3f2f1;
+            --dark: #252423;
+            --grey: #605e5c;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 0;
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .main-content {
+            background-color: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-button {
+            padding: 15px 20px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--grey);
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            outline: none;
+        }
+        
+        .tab-button:hover {
+            background-color: #e5e5e5;
+            color: var(--primary);
+        }
+        
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            background-color: white;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 25px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Section styles */
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: var(--primary);
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* Cards */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #eee;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+        }
+        
+        .flow-node {
+            width: 250px;
+            padding: 15px;
+            background-color: white;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            text-align: center;
+            margin: 5px 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .flow-node:hover {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 120, 212, 0.3);
+        }
+        
+        .flow-arrow {
+            width: 2px;
+            height: 30px;
+            background-color: var(--grey);
+            position: relative;
+        }
+        
+        .flow-arrow:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -4px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 8px solid var(--grey);
+        }
+        
+        .flow-branch {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            margin-top: 10px;
+        }
+        
+        .flow-branch-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 10px;
+        }
+        
+        .flow-horizontal-line {
+            height: 2px;
+            background-color: var(--grey);
+            width: 80%;
+            position: absolute;
+            top: -10px;
+        }
+        
+        .flow-vertical-line {
+            width: 2px;
+            height: 20px;
+            background-color: var(--grey);
+            margin-top: -10px;
+        }
+        
+        /* Modal for node details */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            width: 60%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            opacity: 0.8;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table th, table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        
+        table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+        
+        table tr:hover {
+            background-color: #f8f8f8;
+        }
+        
+        /* Code Block */
+        .code-block {
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: Consolas, Monaco, 'Courier New', monospace;
+            white-space: pre;
+            overflow-x: auto;
+            border: 1px solid #eee;
+            margin: 15px 0;
+        }
+        
+        /* Subtabs for sections */
+        .subtabs {
+            display: flex;
+            margin: 20px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .subtab-button {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-weight: 500;
+            color: var(--grey);
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .subtab-button:hover {
+            color: var(--primary);
+        }
+        
+        .subtab-button.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .subtab-content {
+            display: none;
+            padding: 20px 0;
+            animation: fadeIn 0.3s;
+        }
+        
+        .subtab-content.active {
+            display: block;
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background-color: #e6f7e6;
+            color: var(--success);
+        }
+        
+        .badge-warning {
+            background-color: #fff8e6;
+            color: var(--warning);
+        }
+        
+        .badge-danger {
+            background-color: #fdeeee;
+            color: var(--danger);
+        }
+        
+        /* Status Icons */
+        .status-icon {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .flow-branch {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .flow-branch-item {
+                margin: 10px 0;
+            }
+            
+            .flow-horizontal-line {
+                display: none;
+            }
+            
+            .tab-nav {
+                flex-wrap: wrap;
+            }
+            
+            .tab-button {
+                flex: 1 0 50%;
+                text-align: center;
+            }
+            
+            .modal-content {
+                width: 90%;
+                margin: 20% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏗️ Power Platform Governance Automation</h1>
+        </header>
+        
+        <div class="main-content">
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-button active" onclick="openTab('architecture')">Gesamtarchitektur</button>
+                <button class="tab-button" onclick="openTab('provisioning')">Umgebungsverwaltung</button>
+                <button class="tab-button" onclick="openTab('governance')">Regelwerk & DLP</button>
+                <button class="tab-button" onclick="openTab('components')">Komponenten</button>
+            </div>
+            
+            <!-- Architecture Tab -->
+            <div id="architecture" class="tab-content active">
+                <div class="section">
+                    <h2 class="section-title">🏗️ Gesamtarchitektur des Governance-Systems</h2>
+                    <p>Dieses Diagramm zeigt den Gesamtablauf des Governance-Prozesses für Power Platform. Klicken Sie auf einen Knoten, um Details zu sehen.</p>
+                    
+                    <!-- Flow Diagram -->
+                    <div class="flow-diagram">
+                        
+                        <div class="flow-node" onclick="showDetails('auto-check')">
+                            Automatisierte Prüfung (LLM / Regelengine)
+                        </div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-node" onclick="showDetails('notification')">
+                            Benachrichtigung (Teams/Mail)
+                        </div>
+                        <div class="flow-arrow"></div>
+                        <div class="flow-node" onclick="showDetails('manual-approval')">
+                            Manuelle Freigabe im Governance-Board
+                        </div>
+                        <div class="flow-arrow"></div>
+                        
+                        <!-- Branching workflows -->
+                        <div class="flow-branch">
+                            <div class="flow-horizontal-line"></div>
+                            
+                            <div class="flow-branch-item">
+                                <div class="flow-vertical-line"></div>
+                                <div class="flow-node" onclick="showDetails('provisioning')">
+                                    1. Provisionierung neuer Umgebungen
+                                </div>
+                            </div>
+                            
+                            <div class="flow-branch-item">
+                                <div class="flow-vertical-line"></div>
+                                <div class="flow-node" onclick="showDetails('connectors')">
+                                    2. Konnektor-/DLP-Freigaben
+                                </div>
+                            </div>
+                            
+                            <div class="flow-branch-item">
+                                <div class="flow-vertical-line"></div>
+                                <div class="flow-node" onclick="showDetails('licenses')">
+                                    3. Lizenzvergabe
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flow-branch">
+                            <div class="flow-branch-item">
+                                <div class="flow-node" onclick="showDetails('owner-change')">
+                                    4. Ownerwechsel
+                                </div>
+                            </div>
+                            
+                            <div class="flow-branch-item">
+                                <div class="flow-node" onclick="showDetails('lifecycle')">
+                                    5. Lifecycle Monitoring
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">🧭 Gesamtziel</h2>
+                    <div class="card">
+                        <div class="card-body">
+                            <p>Nach der automatisierten Prüfung und Benachrichtigung soll:</p>
+                            <ul>
+                                <li>Der verantwortliche Bereich (GAT4, Governance Board, CKT) per Mail oder Teams benachrichtigt werden.</li>
+                                <li>Die manuelle Freigabe in der HubApp ermöglicht werden.</li>
+                                <li>Darauf basierend die automatisierte Provisionierung von Power Platform-Umgebungen (nach Governance-Vorgaben) erfolgen.</li>
+                                <li>Ebenso die automatisierte Stilllegung oder Löschung bei Inaktivität, Ablauf oder Testzweck.</li>
+                            </ul>
+                            <p>Weitere Governance-relevante Anforderungen wie Konnektoren, DLPs, Lizenzvergabe und Ownerwechsel sollen so weit wie möglich automatisiert werden – aber stets mit nachvollziehbarer Genehmigungslogik, ggf. gestützt durch das CoE Starter Kit zur Vermeidung von Redundanz oder Governance-Verstößen.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Provisioning Tab -->
+            <div id="provisioning" class="tab-content">
+                <h2 class="section-title">🔁 Umgebungsverwaltung</h2>
+                
+                <div class="subtabs">
+                    <button class="subtab-button active" onclick="openSubtab('creation')">Erstellung</button>
+                    <button class="subtab-button" onclick="openSubtab('deactivation')">Deaktivierung</button>
+                    <button class="subtab-button" onclick="openSubtab('owner')">Ownerwechsel</button>
+                </div>
+                
+                <!-- Environment Creation -->
+                <div id="creation" class="subtab-content active">
+                    <div class="section">
+                        <h3>1. Automatisierte Umgebungserstellung</h3>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                🔧 Trigger
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li>Freigabe durch Board + Freigabestatus = genehmigt</li>
+                                    <li>Konfigurierter Umgebungstyp: z. B. „Production – MA40", „Test – Projekt X"</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                ⚙️ Umsetzung
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li>Power Automate Flow oder Azure Automation Runbook</li>
+                                    <li>Verwendung des Admin Center APIs / Power Platform CLI</li>
+                                    <li>Umgebungskonfiguration aus Governance-Mapping (JSON oder Tabelle):</li>
+                                </ul>
+                                
+                                <div class="code-block">{
+  "envTemplate": "TEST_ENV_MA40",
+  "region": "westeurope",
+  "dataLossPreventionPolicy": "TestDLP",
+  "securityGroup": "PowerApps_MA40_Tester"
+}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                🧾 Schritte
+                            </div>
+                            <div class="card-body">
+                                <ol>
+                                    <li>Erstelle Umgebung mit API</li>
+                                    <li>Weise DLP-Policy zu</li>
+                                    <li>Setze Owner + Berechtigungen</li>
+                                    <li>Logge alle Schritte in Dataverse (Audit Trail)</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Environment Deactivation -->
+                <div id="deactivation" class="subtab-content">
+                    <div class="section">
+                        <h3>2. Deaktivierung/Löschung inaktiver Umgebungen</h3>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                🧩 Grundlage
+                            </div>
+                            <div class="card-body">
+                                <p>Nutzung der CoE Audit-Daten (Admin | Nurture | Monitor):</p>
+                                <ul>
+                                    <li>LastAppLaunchDate</li>
+                                    <li>CreatedByRole = Developer</li>
+                                    <li>IsTestEnvironment = true</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                🔄 Logik
+                            </div>
+                            <div class="card-body">
+                                <p>Zeitsteuerung via Scheduled Flow (1× pro Woche)</p>
+                                <p>Prüfung:</p>
+                                <ul>
+                                    <li>LastActivity > 30 Tage?</li>
+                                    <li>EnvironmentType = Trial oder IsTemporary = true?</li>
+                                </ul>
+                                <p>Falls zutreffend:</p>
+                                <ul>
+                                    <li>Sende Genehmigungsanfrage an Governance Board</li>
+                                    <li>Bei Genehmigung → Deaktivierung/Löschung via API</li>
+                                    <li>Status-Update in HubApp + AuditTrail</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Owner Change -->
+                <div id="owner" class="subtab-content">
+                    <div class="section">
+                        <h3>5. Ownerwechsel mit Automatisierung</h3>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                👤 Schritte
+                            </div>
+                            <div class="card-body">
+                                <ol>
+                                    <li>Anfrage erfassen (neuer Owner, Grund, Umgebung)</li>
+                                    <li>Prüfung gegen Berechtigungsrichtlinien (z. B. MA01 darf übernehmen)</li>
+                                    <li>Prüfung ob neuer Owner bereits Zugriff hat</li>
+                                    <li>Automatisierte Änderung der Environment Admin-Rolle via Admin API</li>
+                                    <li>Dokumentation im Log</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Governance Tab -->
+            <div id="governance" class="tab-content">
+                <h2 class="section-title">🔌 Governance & Regelwerk</h2>
+                
+                <div class="subtabs">
+                    <button class="subtab-button active" onclick="openSubtab('connector-approval')">Konnektor-Freigabe</button>
+                    <button class="subtab-button" onclick="openSubtab('dlp-management')">DLP-Verwaltung</button>
+                    <button class="subtab-button" onclick="openSubtab('coe-integration')">CoE-Integration</button>
+                </div>
+                
+                <!-- Connector Approval -->
+                <div id="connector-approval" class="subtab-content active">
+                    <div class="section">
+                        <h3>3. Automatisierte Konnektor-Freigabe</h3>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <p>Logik:</p>
+                                <ul>
+                                    <li>Anfrage enthält Konnektor(e)</li>
+                                    <li>Abgleich mit:
+                                        <ul>
+                                            <li>Governance-Matrix (erlaubt/gesperrt)</li>
+                                            <li>bestehenden Freigaben aus CoE</li>
+                                        </ul>
+                                    </li>
+                                    <li>Bei Match:
+                                        <ul>
+                                            <li>Automatisierte Freigabe & Zuordnung zur Umgebung</li>
+                                            <li>DLP-Zuweisung prüfen / setzen</li>
+                                        </ul>
+                                    </li>
+                                    <li>Falls neu oder kritisch:
+                                        <ul>
+                                            <li>Manuelle Genehmigung notwendig</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Konnektor</th>
+                                        <th>Kategorie</th>
+                                        <th>Freigabe</th>
+                                        <th>Genehmigung</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>SharePoint</td>
+                                        <td>Business</td>
+                                        <td><span class="badge badge-success">Automatisch</span></td>
+                                        <td>Nein</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Office 365 Outlook</td>
+                                        <td>Business</td>
+                                        <td><span class="badge badge-success">Automatisch</span></td>
+                                        <td>Nein</td>
+                                    </tr>
+                                    <tr>
+                                        <td>SQL Server</td>
+                                        <td>Business</td>
+                                        <td><span class="badge badge-warning">Manuell</span></td>
+                                        <td>Ja</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Twitter</td>
+                                        <td>Non-Business</td>
+                                        <td><span class="badge badge-warning">Manuell</span></td>
+                                        <td>Ja</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- DLP Management -->
+                <div id="dlp-management" class="subtab-content">
+                    <div class="section">
+                        <h3>4. DLP-Richtlinien automatisch verwalten</h3>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                Vorgehen
+                            </div>
+                            <div class="card-body">
+                                <p>Klassifizierung des UseCases (z. B. intern, öffentlich, kritisch)</p>
+                                <p>DLP-Matrix:</p>
+                                <div class="code-block">{
+  "internal": "StandardDLP",
+  "public": "StrictDLP",
+  "sensitive": "BlockedDLP"
+}</div>
+                                <ul>
+                                    <li>Dynamische Zuweisung über Power Platform Admin Connector</li>
+                                    <li>Governance-Check: Kein Mix von Business + NonBusiness erlaubt</li>
+                                    <li>Auditieren der Policy-Zuweisung</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CoE Integration -->
+                <div id="coe-integration" class="subtab-content">
+                    <div class="section">
+                        <h3>📚 Nutzung des CoE Starter Kits</h3>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <p>Genutzt werden sollen:</p>
+                                <ul>
+                                    <li>Environment-, App-, Flow-Insights</li>
+                                    <li>Historische DLP-Zuordnungen</li>
+                                    <li>AuditHistory zur Aktivitätsanalyse</li>
+                                    <li>Custom-Properties für FreigabeStatus, Genehmiger, OwnerTyp etc.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                🔐 Governance & Audit
+                            </div>
+                            <div class="card-body">
+                                <p>Jede automatisierte Aktion erfordert:</p>
+                                <ul>
+                                    <li>Protokollierung in Dataverse / Audit-Tabelle</li>
+                                    <li>Angabe: „Automatisiert durch Flow XY am Datum"</li>
+                                    <li>Optional: Genehmigungs-Referenz (ID, Person, Timestamp)</li>
+                                    <li>Revisionssicherer Export bei Anforderung durch interne Revision</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Components Tab -->
+            <div id="components" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">📦 Komponenten & Zukunftsausblick</h2>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            Komponentenübersicht für Umsetzung
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Komponente</th>
+                                            <th>Technologie</th>
+                                            <th>Rolle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>HubApp</td>
+                                            <td>Power Apps (Canvas)</td>
+                                            <td>UI zur Verwaltung der Anforderungen</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Workflows</td>
+                                            <td>Power Automate</td>
+                                            <td>Trigger + Verarbeitung</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Automationsengine</td>
+                                            <td>Azure Function / CLI / Logic Apps</td>
+                                            <td>Umgebungserstellung, Löschung etc.</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Governance Datenmodell</td>
+                                            <td>JSON in Dataverse</td>
+                                            <td>Regeln für Konnektoren, DLPs, Umgebungen</td>
+                                        </tr>
+                                        <tr>
+                                            <td>CoE Integration</td>
+                                            <td>Dataverse (CoE Tables)</td>
+                                            <td>Abgleich von bestehenden Fällen</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Benachrichtigung</td>
+                                            <td>Graph API, Mail, Teams</td>
+                                            <td>Stakeholder informieren</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Logging / Auditing</td>
+                                            <td>Dataverse Audit Table</td>
+                                            <td>Nachvollziehbarkeit & Revision</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            🚀 Zukunftsausblick
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Automatisierbar</th>
+                                            <th>Status</th>
+                                            <th>Voraussetzung</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Umgebungserstellung</td>
+                                            <td>✅ Ja</td>
+                                            <td>Governance-Template vorhanden</td>
+                                        </tr>
+                                        <tr>
+                                            <td>DLP-Zuweisung</td>
+                                            <td>✅ Ja</td>
+                                            <td>Matrix gepflegt</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Lizenzvergabe</td>
+                                            <td>⚠️ Teilweise</td>
+                                            <td>Microsoft Graph API + Approval</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Konnektorprüfung</td>
+                                            <td>✅ Ja</td>
+                                            <td>CoE + Regelwerk vorhanden</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Umgebungslöschung</td>
+                                            <td>✅ Ja</td>
+                                            <td>CoE-Daten + Genehmigung</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Ownerwechsel</td>
+                                            <td>✅ Ja</td>
+                                            <td>API-Zugriff + Regelprüfung</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modals for node details -->
+            <div id="node-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modal-title">Details</h3>
+                        <span class="close" onclick="closeModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="modal-body">
+                        <!-- Content will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Open tab
+        function openTab(tabId) {
+            // Hide all tab contents
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            // Show the selected tab content and mark button as active
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`[onclick="openTab('${tabId}')"]`).classList.add('active');
+            
+            // Reset subtabs if they exist in this tab
+            const activeTab = document.getElementById(tabId);
+            const subtabButtons = activeTab.querySelectorAll('.subtab-button');
+            if (subtabButtons.length > 0) {
+                subtabButtons[0].click();
+            }
+        }
+        
+        // Open subtab
+        function openSubtab(subtabId) {
+            // Hide all subtab contents within the active tab
+            const activeTab = document.querySelector('.tab-content.active');
+            const subtabContents = activeTab.getElementsByClassName('subtab-content');
+            for (let i = 0; i < subtabContents.length; i++) {
+                subtabContents[i].classList.remove('active');
+            }
+            
+            // Remove active class from all subtab buttons within the active tab
+            const subtabButtons = activeTab.getElementsByClassName('subtab-button');
+            for (let i = 0; i < subtabButtons.length; i++) {
+                subtabButtons[i].classList.remove('active');
+            }
+            
+            // Show the selected subtab content and mark button as active
+            document.getElementById(subtabId).classList.add('active');
+            activeTab.querySelector(`[onclick="openSubtab('${subtabId}')"]`).classList.add('active');
+        }
+        
+        // Node details
+        function showDetails(nodeId) {
+            const modal = document.getElementById('node-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            
+            // Set modal content based on the node ID
+            switch(nodeId) {
+                case 'hub-app':
+                    modalTitle.textContent = 'HubApp (Power Apps)';
+                    modalBody.innerHTML = `
+                        <p>Die zentrale Canvas Power App zur Erfassung und Verwaltung von Anforderungen für Power Platform-Ressourcen.</p>
+                        <ul>
+                            <li><strong>Hauptfunktionen:</strong> Erfassung neuer Anfragen, Statusverfolgung, Dashboards</li>
+                            <li><strong>Benutzer:</strong> Power Platform Administratoren, Entwickler, Business Owners</li>
+                            <li><strong>Integration:</strong> Dataverse für strukturierte Datenspeicherung</li>
+                        </ul>
+                        <p>Benutzer können hier neue Umgebungen, Konnektor-Freigaben oder Ownerwechsel beantragen und den Status ihrer Anfragen verfolgen.</p>
+                    `;
+                    break;
+                case 'dataverse':
+                    modalTitle.textContent = 'Anforderungstabelle (Dataverse)';
+                    modalBody.innerHTML = `
+                        <p>Zentrale Datenbank für alle Power Platform-Governance-Anfragen und deren Tracking.</p>
+                        <ul>
+                            <li><strong>Hauptentitäten:</strong> Anforderungen, Genehmigungen, Audit-Logs</li>
+                            <li><strong>Verknüpfungen:</strong> Zu CoE-Tabellen, Benutzerinformationen</li>
+                            <li><strong>Speichert:</strong> Anforderungsdetails, Status, Zeitstempel, Genehmiger</li>
+                        </ul>
+                        <p>Die Dataverse-Tabellen bilden das Rückgrat der gesamten Governance-Automatisierung und ermöglichen revisionssichere Protokollierung.</p>
+                    `;
+                    break;
+                case 'auto-check':
+                    modalTitle.textContent = 'Automatisierte Prüfung';
+                    modalBody.innerHTML = `
+                        <p>Regelbasierte Engine oder KI-gestütztes System zur Vorprüfung von Anfragen.</p>
+                        <ul>
+                            <li><strong>Prüft gegen:</strong> Governance-Regeln, DLP-Richtlinien, Berechtigungsmatrix</li>
+                            <li><strong>Entscheidet:</strong> Automatisch genehmigbar vs. manueller Review nötig</li>
+                            <li><strong>Technologie:</strong> Power Automate Flow mit Bedingungen oder Azure LLM</li>
+                        </ul>
+                        <p>Die automatisierte Prüfung reduziert den manuellen Aufwand für das Governance-Board durch Vorfilterung nach definierten Regeln.</p>
+                    `;
+                    break;
+                case 'notification':
+                    modalTitle.textContent = 'Benachrichtigung (Teams/Mail)';
+                    modalBody.innerHTML = `
+                        <p>Automatische Benachrichtigungen an relevante Stakeholder über neue oder zu genehmigende Anfragen.</p>
+                        <ul>
+                            <li><strong>Kanäle:</strong> Microsoft Teams, E-Mail, ggf. mobile Notifications</li>
+                            <li><strong>Empfänger:</strong> Governance Board, IT-Administratoren, Antragsteller</li>
+                            <li><strong>Inhalt:</strong> Anforderungsdetails, Links zur Genehmigung, Fälligkeitsdaten</li>
+                        </ul>
+                        <p>Die Benachrichtigungen enthalten direkte Aktionslinks zur schnellen Bearbeitung und Genehmigung in der HubApp.</p>
+                    `;
+                    break;
+                case 'manual-approval':
+                    modalTitle.textContent = 'Manuelle Freigabe im Governance-Board';
+                    modalBody.innerHTML = `
+                        <p>Interface für autorisierte Genehmiger zur Entscheidung über eingegangene Anfragen.</p>
+                        <ul>
+                            <li><strong>Funktionen:</strong> Genehmigen/Ablehnen, Kommentare, Rückfragen</li>
+                            <li><strong>Benutzeroberfläche:</strong> HubApp oder adaptiver Karten in Teams</li>
+                            <li><strong>Sicherheit:</strong> Rollenbasis mit Delegation bei Abwesenheit</li>
+                        </ul>
+                        <p>Das Governance-Board kann bei Bedarf zusätzliche Informationen anfordern oder Bedingungen für die Genehmigung festlegen.</p>
+                    `;
+                    break;
+                case 'provisioning':
+                    modalTitle.textContent = 'Provisionierung neuer Umgebungen';
+                    modalBody.innerHTML = `
+                        <p>Automatisierte Erstellung von Power Platform-Umgebungen nach der Genehmigung.</p>
+                        <ul>
+                            <li><strong>Technologien:</strong> Power Platform Admin API, PowerShell, CLI</li>
+                            <li><strong>Konfiguration:</strong> Aus vordefiniertem Template (JSON/Tabelle)</li>
+                            <li><strong>Nachgelagert:</strong> DLP-Zuweisung, Security Group Verbindung</li>
+                        </ul>
+                        <p>Die Automatisierung stellt sicher, dass alle Umgebungen nach konsistenten Governance-Standards erstellt werden und reduziert manuelle Fehler.</p>
+                    `;
+                    break;
+                case 'connectors':
+                    modalTitle.textContent = 'Konnektor-/DLP-Freigaben';
+                    modalBody.innerHTML = `
+                        <p>Verwaltung und Freigabe von Konnektoren sowie DLP-Richtlinien für Umgebungen.</p>
+                        <ul>
+                            <li><strong>Prüfung:</strong> Abgleich mit erlaubten Konnektor-Listen</li>
+                            <li><strong>Kategorisierung:</strong> Business vs. Non-Business</li>
+                            <li><strong>Sicherheit:</strong> Verhinderung von Datenabfluss durch DLP-Policies</li>
+                        </ul>
+                        <p>Die Konnektor-Verwaltung bildet einen zentralen Aspekt der Data Governance und hilft, unbeabsichtigten Datenabfluss zu verhindern.</p>
+                    `;
+                    break;
+                case 'licenses':
+                    modalTitle.textContent = 'Lizenzvergabe';
+                    modalBody.innerHTML = `
+                        <p>Automatisierte oder teilautomatisierte Zuweisung von Power Platform-Lizenzen.</p>
+                        <ul>
+                            <li><strong>API:</strong> Microsoft Graph für Lizenzzuweisung</li>
+                            <li><strong>Typen:</strong> Power Apps Premium, Power Automate Premium</li>
+                            <li><strong>Einschränkung:</strong> Erfordert Admin-Genehmigung</li>
+                        </ul>
+                        <p>Die Lizenzvergabe ist teilweise automatisierbar, benötigt jedoch in der Regel eine zusätzliche Genehmigungsstufe wegen Budgetauswirkungen.</p>
+                    `;
+                    break;
+                case 'owner-change':
+                    modalTitle.textContent = 'Ownerwechsel';
+                    modalBody.innerHTML = `
+                        <p>Prozess zur Übertragung der Eigentümerschaft von Power Platform-Ressourcen.</p>
+                        <ul>
+                            <li><strong>Prüfung:</strong> Berechtigungsmatrix für neue Owner</li>
+                            <li><strong>Durchführung:</strong> Admin API für Rollenzuweisung</li>
+                            <li><strong>Dokumentation:</strong> Vollständiges Audit-Logging</li>
+                        </ul>
+                        <p>Der automatisierte Ownerwechsel stellt sicher, dass Ressourcen bei Personalwechsel oder Reorganisationen ordnungsgemäß übertragen werden.</p>
+                    `;
+                    break;
+                case 'lifecycle':
+                    modalTitle.textContent = 'Lifecycle Monitoring';
+                    modalBody.innerHTML = `
+                        <p>Überwachung von Umgebungen und Apps über ihren gesamten Lebenszyklus.</p>
+                        <ul>
+                            <li><strong>Datenbasis:</strong> CoE Starter Kit Telemetrie</li>
+                            <li><strong>Metriken:</strong> Nutzung, Inaktivität, Performance</li>
+                            <li><strong>Aktionen:</strong> Automatisierte Warnungen, Löschvorschläge</li>
+                        </ul>
+                        <p>Das Lifecycle-Monitoring identifiziert ungenutzte Ressourcen, ermöglicht Kosteneinsparungen und gewährleistet die Einhaltung von Governance-Richtlinien über die Zeit.</p>
+                    `;
+                    break;
+                default:
+                    modalTitle.textContent = 'Details';
+                    modalBody.innerHTML = '<p>Keine detaillierten Informationen verfügbar.</p>';
+            }
+            
+            // Show the modal
+            modal.style.display = 'block';
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('node-modal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('node-modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set first tab as active
+            const firstTabButton = document.querySelector('.tab-button');
+            if (firstTabButton) {
+                firstTabButton.classList.add('active');
+            }
+            
+            // Set first subtab as active in each tab
+            const tabs = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabs.length; i++) {
+                const firstSubtabButton = tabs[i].querySelector('.subtab-button');
+                if (firstSubtabButton) {
+                    firstSubtabButton.classList.add('active');
+                }
+                
+                const firstSubtabContent = tabs[i].querySelector('.subtab-content');
+                if (firstSubtabContent) {
+                    firstSubtabContent.classList.add('active');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
